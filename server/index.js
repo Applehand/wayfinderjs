@@ -41,7 +41,7 @@ app.get("/oauth2callback", async (req, res) => {
     oauth2Client.setCredentials(tokens);
 
     res.redirect(
-      `http://localhost:5173/auth-success?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`
+      `http://localhost:5173/?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`
     );
   } catch (error) {
     console.error("Error exchanging code for tokens:", error);
