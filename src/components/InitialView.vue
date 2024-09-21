@@ -181,9 +181,4 @@ button {
   width: 100%;
   max-width: 600px;
 }
-
-.alert {
-  margin: auto;
-  max-width: 600px;
-}
 </style>

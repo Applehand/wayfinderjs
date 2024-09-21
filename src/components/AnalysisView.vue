@@ -1,232 +1,304 @@
 <template>
-    <div class="container-fluid mt-4">
-      <div class="row">
-        <!-- Manual Checks Form -->
-        <div class="col-12 mb-4">
-          <div class="card p-4">
-            <h5 class="card-title">Manual Checks</h5>
-            <form @submit.prevent="submitManualChecks">
-              <div class="row">
-                <!-- www vs non-www -->
-                <div class="form-group col-md-6 mb-3">
-                  <label>Subdomain Preference</label>
-                  <select v-model="manualChecks.subdomain" class="form-control">
-                    <option value="www">www</option>
-                    <option value="non-www">non-www</option>
-                  </select>
-                </div>
-                
-                <!-- Trailing Slash vs Non-Trailing Slash -->
-                <div class="form-group col-md-6 mb-3">
-                  <label>URL Trailing Slash</label>
-                  <select v-model="manualChecks.trailingSlash" class="form-control">
-                    <option value="trailing-slash">Trailing Slash</option>
-                    <option value="no-trailing-slash">No Trailing Slash</option>
-                    <option value="">Loads Both</option>
-                  </select>
-                </div>
-                
-                <!-- Protocol -->
-                <div class="form-group col-md-6 mb-3">
-                  <label>Protocol</label>
-                  <select v-model="manualChecks.protocol" class="form-control">
-                    <option value="https">HTTPS</option>
-                    <option value="http">HTTP</option>
-                  </select>
-                </div>
-  
-                <!-- Canonicals -->
-                <div class="form-group col-md-6 mb-3">
-                  <label>Canonical Tags</label>
-                  <select v-model="manualChecks.canonicals" class="form-control">
-                    <option value="correct">Correct</option>
-                    <option value="no-canonicals">No Canonicals</option>
-                    <option value="errors">Errors in Canonicals</option>
-                    <option value="not-needed">Does Not Need Canonicals</option>
-                  </select>
-                  <div v-if="manualChecks.canonicals === 'errors'" class="mt-2">
-                    <label>Specify Canonical Errors</label>
-                    <textarea v-model="manualChecks.canonicalErrors" class="form-control"></textarea>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Sitemap & Robots -->
-              <div class="form-group mb-3">
-                <label>Does the site have an XML sitemap?</label>
-                <input type="checkbox" v-model="manualChecks.xmlSitemap" />
-              </div>
-              
-              <div class="form-group mb-3">
-                <label>Does the robots.txt block important pages?</label>
-                <input type="checkbox" v-model="manualChecks.blockImportantPages" />
-                <div v-if="manualChecks.blockImportantPages">
-                  <label>Specify the blocked pages:</label>
-                  <textarea v-model="manualChecks.blockedPages" class="form-control"></textarea>
-                </div>
-              </div>
-              
-              <!-- Site Structure -->
-              <div class="form-group mb-3">
-                <label>Unnecessary pages in sitemap (e.g., /cart, /my-account, /checkout)?</label>
-                <input type="checkbox" v-model="manualChecks.unnecessaryPagesInSitemap" />
-              </div>
-              
-              <!-- Blog -->
-              <div class="form-group mb-3">
-                <label>Does the site have a blog?</label>
-                <input type="checkbox" v-model="manualChecks.blog" />
-                <div v-if="manualChecks.blog">
-                  <label>Is the blog updated roughly once a month?</label>
-                  <input type="checkbox" v-model="manualChecks.blogUpdated" />
-                </div>
-              </div>
-              
-              <!-- Calls to Action -->
-              <div class="form-group mb-3">
-                <label>Does the site have calls to action?</label>
-                <input type="checkbox" v-model="manualChecks.callsToAction" />
-              </div>
-  
-              <!-- Submit Button -->
-              <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <!-- Manual Checks Form -->
+      <div class="col-12 mb-4">
+        <div v-if="isFormSubmitted" class="alert alert-success mb-3">
+          Manual checks form submitted successfully!
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="card-title mb-0">Manual Checks</h5>
+          <div>
+            <button
+              @click="goToPresentation"
+              class="btn btn-success me-2"
+              :disabled="!isFormSubmitted"
+            >
+              Generate Presentation
+            </button>
+            <button
+              v-if="isFormSubmitted"
+              type="button"
+              class="btn btn-warning"
+              @click="resetForm"
+            >
+              Reset Form
+            </button>
           </div>
         </div>
-  
-        <!-- Left Column: Sitebulb Data -->
-        <div class="col-md-4">
-          <div class="card p-4 mb-4">
-            <h5 class="card-title">Sitebulb Data</h5>
-            <div v-if="loading">Extracting files from the uploaded ZIP...</div>
-            <div v-else>
-              <p class="alert alert-info">
-                {{ extractedFiles.length }} files extracted from the ZIP.
-              </p>
-              <ul class="list-group">
-                <li v-for="file in extractedFiles" :key="file.name" class="list-group-item">
-                  <strong>{{ file.name }}</strong>
-                </li>
-              </ul>
+
+        <div class="card p-4">
+          <form @submit.prevent="submitManualChecks">
+            <div class="row">
+              <!-- www vs non-www -->
+              <div class="form-group col-md-6 mb-3">
+                <label>Subdomain Preference</label>
+                <select v-model="manualChecks.subdomain" class="form-control">
+                  <option value="www">www</option>
+                  <option value="non-www">non-www</option>
+                </select>
+              </div>
+
+              <!-- Trailing Slash vs Non-Trailing Slash -->
+              <div class="form-group col-md-6 mb-3">
+                <label>URL Trailing Slash</label>
+                <select
+                  v-model="manualChecks.trailingSlash"
+                  class="form-control"
+                >
+                  <option value="trailing-slash">Trailing Slash</option>
+                  <option value="no-trailing-slash">No Trailing Slash</option>
+                  <option value="">Loads Both</option>
+                </select>
+              </div>
+
+              <!-- Protocol -->
+              <div class="form-group col-md-6 mb-3">
+                <label>Protocol</label>
+                <select v-model="manualChecks.protocol" class="form-control">
+                  <option value="https">HTTPS</option>
+                  <option value="http">HTTP</option>
+                </select>
+              </div>
+
+              <!-- Canonicals -->
+              <div class="form-group col-md-6 mb-3">
+                <label>Canonical Tags</label>
+                <select v-model="manualChecks.canonicals" class="form-control">
+                  <option value="correct">Correct</option>
+                  <option value="no-canonicals">No Canonicals</option>
+                  <option value="errors">Errors in Canonicals</option>
+                  <option value="not-needed">Does Not Need Canonicals</option>
+                </select>
+                <div v-if="manualChecks.canonicals === 'errors'" class="mt-2">
+                  <label>Specify Canonical Errors</label>
+                  <textarea
+                    v-model="manualChecks.canonicalErrors"
+                    class="form-control"
+                  ></textarea>
+                </div>
+              </div>
             </div>
+
+            <!-- Sitemap & Robots -->
+            <div class="form-group mb-3">
+              <label>Does the site have an XML sitemap?</label>
+              <input type="checkbox" v-model="manualChecks.xmlSitemap" />
+            </div>
+
+            <div class="form-group mb-3">
+              <label>Does the robots.txt block important pages?</label>
+              <input
+                type="checkbox"
+                v-model="manualChecks.blockImportantPages"
+              />
+              <div v-if="manualChecks.blockImportantPages">
+                <label>Specify the blocked pages:</label>
+                <textarea
+                  v-model="manualChecks.blockedPages"
+                  class="form-control"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Site Structure -->
+            <div class="form-group mb-3">
+              <label
+                >Unnecessary pages in sitemap (e.g., /cart, /my-account,
+                /checkout)?</label
+              >
+              <input
+                type="checkbox"
+                v-model="manualChecks.unnecessaryPagesInSitemap"
+              />
+            </div>
+
+            <!-- Blog -->
+            <div class="form-group mb-3">
+              <label>Does the site have a blog?</label>
+              <input type="checkbox" v-model="manualChecks.blog" />
+              <div v-if="manualChecks.blog">
+                <label>Is the blog updated roughly once a month?</label>
+                <input type="checkbox" v-model="manualChecks.blogUpdated" />
+              </div>
+            </div>
+
+            <!-- Calls to Action -->
+            <div class="form-group mb-3">
+              <label>Does the site have calls to action?</label>
+              <input type="checkbox" v-model="manualChecks.callsToAction" />
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Left Column: Sitebulb Data -->
+      <div class="col-md-4">
+        <div class="card p-4 mb-4">
+          <h5 class="card-title">Sitebulb Data</h5>
+          <div v-if="loading">Extracting files from the uploaded ZIP...</div>
+          <div v-else>
+            <p class="alert alert-info">
+              {{ extractedFiles.length }} files extracted from the ZIP.
+            </p>
+            <ul class="list-group">
+              <li
+                v-for="file in extractedFiles"
+                :key="file.name"
+                class="list-group-item"
+              >
+                <strong>{{ file.name }}</strong>
+              </li>
+            </ul>
           </div>
         </div>
-  
-        <!-- Right Column: GSC Data -->
-        <div v-if="appStore.accessToken" class="col-md-8">
-          <div class="card p-4 mb-4">
-            <h5 class="card-title">Test Search Console API</h5>
-            <button @click="testGSC" class="btn btn-primary mb-3">Fetch GSC Data</button>
-            <div v-if="gscLoading" class="mt-3">Fetching from Search Console...</div>
-            <div v-else-if="gscData">
-              <pre>{{ gscData }}</pre>
-            </div>
+      </div>
+
+      <!-- Right Column: GSC Data -->
+      <div v-if="appStore.accessToken" class="col-md-8">
+        <div class="card p-4 mb-4">
+          <h5 class="card-title">Search Console Data</h5>
+          <button @click="testGSC" class="btn btn-primary mb-3">
+            Fetch GSC Data
+          </button>
+          <div v-if="gscLoading" class="mt-3">
+            Fetching from Search Console...
+          </div>
+          <div v-else-if="gscData">
+            <pre>{{ gscData }}</pre>
           </div>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script setup lang="ts">
-  import { ref, onMounted } from "vue";
-  import { useAppStore } from "../stores/appStore";
-  import { getIndexCoverage } from "../services/searchConsoleService";
-  import JSZip from "jszip";
-  import { useRouter } from "vue-router";
-  
-  const router = useRouter();
-  const appStore = useAppStore();
-  const extractedFiles = ref<{ name: string; content: string }[]>([]);
-  const loading = ref(true);
-  const gscLoading = ref(false);
-  const gscData = ref(null);
-  const zipReader = new JSZip();
-  
-  const manualChecks = ref({
-    subdomain: 'www', // Default option
-    trailingSlash: 'trailing-slash', // Default option
-    protocol: 'https', // Default option
-    canonicals: 'correct', // Default option
-    canonicalErrors: '',
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { useAppStore } from "../stores/appStore";
+import { getIndexCoverage } from "../services/searchConsoleService";
+import JSZip from "jszip";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const appStore = useAppStore();
+const extractedFiles = ref<{ name: string; content: string }[]>([]);
+const loading = ref(true);
+const gscLoading = ref(false);
+const gscData = ref(null);
+const zipReader = new JSZip();
+const isFormSubmitted = ref(false);
+
+const manualChecks = ref({
+  subdomain: "www",
+  trailingSlash: "trailing-slash",
+  protocol: "https",
+  canonicals: "correct",
+  canonicalErrors: "",
+  xmlSitemap: false,
+  blog: false,
+  blogUpdated: false,
+  callsToAction: false,
+  unnecessaryPagesInSitemap: false,
+  blockImportantPages: false,
+  blockedPages: "",
+});
+
+function submitManualChecks() {
+  isFormSubmitted.value = true;
+  console.log("Manual Checks Submitted:", manualChecks.value);
+}
+
+function resetForm() {
+  Object.assign(manualChecks.value, {
+    subdomain: "www",
+    trailingSlash: "trailing-slash",
+    protocol: "https",
+    canonicals: "correct",
+    canonicalErrors: "",
     xmlSitemap: false,
     blog: false,
     blogUpdated: false,
     callsToAction: false,
     unnecessaryPagesInSitemap: false,
     blockImportantPages: false,
-    blockedPages: ''
+    blockedPages: "",
   });
-  
-  function submitManualChecks() {
-    console.log('Manual Checks Submitted:', manualChecks.value);
-  }
-  
-  async function extractFiles(file: File) {
-    try {
-      const content = await file.arrayBuffer();
-      const zipContent = await zipReader.loadAsync(content);
-      for (const [relativePath, zipEntry] of Object.entries(zipContent.files)) {
-        const fileData = await zipEntry.async("text");
-        extractedFiles.value.push({ name: relativePath, content: fileData });
-      }
-      loading.value = false;
-    } catch (error) {
-      console.error("Error processing ZIP file:", error);
-      loading.value = false;
+  isFormSubmitted.value = false;
+}
+
+async function extractFiles(file: File) {
+  try {
+    const content = await file.arrayBuffer();
+    const zipContent = await zipReader.loadAsync(content);
+    for (const [relativePath, zipEntry] of Object.entries(zipContent.files)) {
+      const fileData = await zipEntry.async("text");
+      extractedFiles.value.push({ name: relativePath, content: fileData });
     }
+    loading.value = false;
+  } catch (error) {
+    console.error("Error processing ZIP file:", error);
+    loading.value = false;
   }
-  
-  async function testGSC() {
-    if (!appStore.accessToken || !appStore.selectedDomain) {
-      alert("Access token or selected domain missing.");
-      return;
-    }
-  
-    gscLoading.value = true;
-    try {
-      const data = await getIndexCoverage(
-        appStore.accessToken,
-        appStore.selectedDomain,
-        "2023-01-01",
-        "2023-12-31"
-      );
-      gscData.value = data;
-    } catch (error) {
-      console.error("Error fetching GSC data:", error);
-      gscData.value = `Error: ${error.message}`;
-    } finally {
-      gscLoading.value = false;
-    }
+}
+
+async function testGSC() {
+  if (!appStore.accessToken || !appStore.selectedDomain) {
+    alert("Access token or selected domain missing.");
+    return;
   }
-  
-  onMounted(() => {
-    const selectedFile = appStore.selectedFile;
-    if (selectedFile) {
-      extractFiles(selectedFile);
-    } else {
-      console.log(
-        "No Sitebulb ZIP file found. Redirecting back to the initial view."
-      );
-      router.replace("/").catch((err) => {
-        console.error("Navigation error:", err);
-      });
-    }
-  });
-  </script>
-  
-  <style scoped>
-  .form-group select {
-    max-width: 300px;
+
+  gscLoading.value = true;
+  try {
+    const data = await getIndexCoverage(
+      appStore.accessToken,
+      appStore.selectedDomain,
+      "2023-01-01",
+      "2023-12-31"
+    );
+    gscData.value = data;
+  } catch (error) {
+    console.error("Error fetching GSC data:", error);
+    gscData.value = `Error: ${error.message}`;
+  } finally {
+    gscLoading.value = false;
   }
-  .form-group.col-md-6 {
-    padding-right: 15px;
+}
+
+function goToPresentation() {
+  router.push("/presentation");
+}
+
+onMounted(() => {
+  const selectedFile = appStore.selectedFile;
+  if (selectedFile) {
+    extractFiles(selectedFile);
+  } else {
+    console.log(
+      "No Sitebulb ZIP file found. Redirecting back to the initial view."
+    );
+    router.replace("/").catch((err) => {
+      console.error("Navigation error:", err);
+    });
   }
-  textarea {
-    max-width: 100%;
-    resize: vertical;
-  }
-  .list-group-item {
-    word-wrap: break-word;
-  }
-  </style>
-  
+});
+</script>
+
+<style scoped>
+.form-group select {
+  max-width: 300px;
+}
+.form-group.col-md-6 {
+  padding-right: 15px;
+}
+textarea {
+  max-width: 100%;
+  resize: vertical;
+}
+.list-group-item {
+  word-wrap: break-word;
+}
+</style>

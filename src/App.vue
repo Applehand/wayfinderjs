@@ -6,10 +6,9 @@
   <router-view />
 </template>
 
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
-<style scoped>
+<style>
 .app-header {
   background-color: #f8f9fa;
   padding: 1rem;
@@ -25,5 +24,10 @@
 
 .home-link:hover {
   text-decoration: underline;
+}
+
+.alert {
+  margin: auto;
+  max-width: 600px;
 }
 </style>
