@@ -1,22 +1,49 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://www.googleapis.com/webmasters/v3/sites";
+const EXPRESS_SERVER_URL = "http://localhost:3000";
 
 /**
  * Get list of verified properties (domains) for the authenticated user.
- * @param {string} accessToken - The access token obtained from OAuth2 authentication.
- * @returns {Promise<any>} - A promise that resolves to the list of sites.
  */
 export const getVerifiedSites = async (accessToken: string) => {
   try {
-    const response = await axios.get(API_BASE_URL, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await axios.get(
+      `${EXPRESS_SERVER_URL}/api/verified-sites`,
+      {
+        params: { access_token: accessToken },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching verified sites:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get Index Coverage Data for a specific site.
+ */
+export const getIndexCoverage = async (
+  accessToken: string,
+  siteUrl: string,
+  startDate: string,
+  endDate: string
+) => {
+  try {
+    const response = await axios.get(
+      `${EXPRESS_SERVER_URL}/api/index-coverage`,
+      {
+        params: {
+          access_token: accessToken,
+          site_url: siteUrl,
+          start_date: startDate,
+          end_date: endDate,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching index coverage data:", error);
     throw error;
   }
 };

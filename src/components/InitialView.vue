@@ -27,6 +27,10 @@
           </button>
         </div>
 
+        <div v-if="userEmail" class="alert alert-info">
+          Signed in as: <strong>{{ userEmail }}</strong>
+        </div>
+
         <div
           v-if="appStore.accessToken && sites.length > 0"
           class="row justify-content-center mt-2"
@@ -66,7 +70,8 @@
         </div>
 
         <div v-if="appStore.selectedFile" class="alert alert-success">
-          Sitebulb ZIP file successfully uploaded!
+          Sitebulb ZIP file successfully uploaded:
+          {{ appStore.selectedFile.name }}
         </div>
       </div>
     </div>
@@ -83,6 +88,7 @@ const appStore = useAppStore();
 const router = useRouter();
 const sites = ref([]);
 const selectedDomain = ref<string | null>(null);
+const userEmail = ref<string | null>(null);
 
 function startOAuth() {
   window.location.href = "http://localhost:3000/auth";
@@ -112,7 +118,6 @@ function onFileChanged(event: Event) {
     const file = target.files[0];
     if (file.name.endsWith(".zip")) {
       appStore.setSelectedFile(file);
-      console.log("ZIP file selected:", file);
     } else {
       console.error("Only ZIP files are allowed.");
     }
@@ -149,9 +154,18 @@ watch(appStore.accessToken, () => {
 });
 
 onMounted(() => {
-  appStore.setAccessToken(
-    new URLSearchParams(window.location.search).get("access_token")
-  );
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlAccessToken = urlParams.get("access_token");
+  const urlEmail = urlParams.get("email");
+
+  if (!appStore.accessToken && urlAccessToken) {
+    appStore.setAccessToken(urlAccessToken);
+  }
+
+  if (urlEmail) {
+    userEmail.value = urlEmail;
+  }
+
   if (appStore.accessToken) {
     fetchVerifiedSites();
   }

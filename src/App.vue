@@ -1,7 +1,6 @@
-<!-- src/App.vue -->
 <template>
   <header class="app-header">
-    <router-link to="/" class="home-link">🏠 Back to Home</router-link>
+    <router-link to="/" class="home-link">🏠 Home</router-link>
   </header>
 
   <router-view />
