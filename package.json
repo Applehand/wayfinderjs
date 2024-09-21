@@ -20,7 +20,9 @@
     "express": "^4.21.0",
     "googleapis": "^144.0.0",
     "jszip": "^3.10.1",
-    "vue": "^3.4.37"
+    "pinia": "^2.2.2",
+    "vue": "^3.4.37",
+    "vue-router": "^4.0.13"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.2",
