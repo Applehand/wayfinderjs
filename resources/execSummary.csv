@@ -1,0 +1,59 @@
+Executive Summary	Analysis	Where To Locate
+Target URL 404 errors		SEO Tool
+Is the sitemap submitted to Search Console?		Search Console
+Is the site blocked from indexing?		Search Console
+Search Console 404 errors		Search Console
+Search Console 404 errors to address		Search Console
+Search Console soft 404 errors		Search Console
+Pages with 'Poor' LCP performance		Search Console
+Pages with 'Poor' CLS performance		Search Console
+Pages with 'Poor' INP peformance		Search Console
+Does the site have structured data?		Search Console
+Does the site have structured data errors?		Search Console
+Does the site have manual actions?		Search Console
+Does the site have security warnings inside Google Search Console?		Search Console
+Are pages blocked by robots meta tag or x robots tag?		Tech audit attachments
+Missing image alt-text (unique)		Tech audit attachments
+Broken internal links		Tech audit attachments
+Broken external links		Tech audit attachments
+Broken backlinks (unique)		Tech audit attachments
+Internal redirects links		Tech audit attachments
+External redirect links		Tech audit attachments
+Redirect chains		Tech audit attachments
+Orphaned pages		Tech audit attachments
+Broken pages in sitemaps		Tech audit attachments
+Redirected pages in sitemaps		Tech audit attachments
+URLs in multiple sitemaps		Tech audit attachments
+Canonicalized URLs in sitemaps		Tech audit attachments
+Noindex pages in sitemaps		Tech audit attachments
+Pages that load mixed resources		Tech audit attachments
+Pages with missing meta titles		Tech audit attachments
+Pages with duplicate meta titles		Tech audit attachments
+Pages with meta titles > 60 characters		Tech audit attachments
+Pages with meta titles < 40 characters		Tech audit attachments
+Pages with missing meta descriptions		Tech audit attachments
+Pages with duplicate meta descriptions		Tech audit attachments
+Pages with meta descriptions > 160 characters		Tech audit attachments
+Pages with meta descriptions < 140 characters		Tech audit attachments
+Pages with missing H1s		Tech audit attachments
+Pages with duplicate H1s		Tech audit attachments
+Multiple H1s		Tech audit attachments
+Number of pages with content opportunities		Tech audit attachments
+Offsite duplicate content %		Copyscape
+Onsite duplicate content %		Siteliner
+Does the site have calls to action?		Manually check
+"The sitemap contains unnecessary pages (e.g., /cart, /my-account, /checkout)"		Manually check
+Does the site have canonicals?		Manually check
+Are the canonicals correct?		Manually check
+Does the site load with a trailing backslash?		Manually check
+Does the site load without trailing backslash?		Manually check
+Does the site load www?		Manually check
+Does the site load without www (naked)?		Manually check
+Does the site load HTTP?		Manually check
+Does the site load HTTPS?		Manually check
+Do internally linked URLs match URLs inside the sitemap(s)?		Manually check
+"Does the robots.txt block important pages? (e.g., entire website, ecomm categories)"		Manually check
+"Does the robots.txt block unneessary pages? (e.g., /cart, /my-account, /checkout)"		Manually check
+Does the site have an XML sitemap?		Manually check
+Does the site have a blog?		Manually check
+Is the blog updated roughly once a month?		Manually check
