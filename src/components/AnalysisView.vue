@@ -108,7 +108,7 @@
                 >
                   <option value="trailing-slash">Trailing Slash</option>
                   <option value="no-trailing-slash">No Trailing Slash</option>
-                  <option value="">Loads Both</option>
+                  <option value="loads-both-trailing-slash">Loads Both</option>
                 </select>
               </div>
 
@@ -249,14 +249,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 import { useAppStore } from "../stores/appStore";
 import { getIndexCoverage } from "../services/searchConsoleService";
 import JSZip from "jszip";
 import { useRouter } from "vue-router";
-import * as auditTypes from "../interfaces";
 import { auditData } from "../data/auditData";
-import { auditMapping } from "../data/auditMapping";
 import { auditTable } from "../data/auditTable";
 
 const router = useRouter();
@@ -268,82 +266,34 @@ const gscData = ref(null);
 const zipReader = new JSZip();
 const isFormSubmitted = ref(false);
 
-console.log("Audit data structure:", JSON.stringify(auditData.value, null, 2));
-
-function updateAuditTableFromData(newAuditData) {
-  const updatedAuditTable = [...auditTable]; // Create a new reference for the reactive array
-  for (const [key, title] of Object.entries(auditMapping)) {
-    const auditItemIndex = updatedAuditTable.findIndex(
-      (item) => item.title === title
-    );
-    if (auditItemIndex !== -1) {
-      // Update the item in the copied array
-      updatedAuditTable[auditItemIndex] = {
-        ...updatedAuditTable[auditItemIndex],
-        value: newAuditData[key] || "",
-      };
-      console.log(
-        `Updated ${title}: ${updatedAuditTable[auditItemIndex].value}`
-      );
-    } else {
-      console.warn(`Missing title in auditTable: ${title}`);
-    }
-  }
-  // Replace the reactive array with the updated one
-  auditTable.splice(0, auditTable.length, ...updatedAuditTable);
-  console.log("Updated auditTable: ", JSON.stringify(auditTable, null, 2));
-}
-
-// Watch for changes in auditData and update the table accordingly
-watch(
-  auditData,
-  (newAuditData) => {
-    updateAuditTableFromData(newAuditData);
-  },
-  { deep: true } // Deep watching for nested objects
-);
-
-async function processSitebulbData(files) {
-  // Extract the required information from the files
-  const target404Errors = extract404Errors(files);
-  auditData.value.targetUrl404Errors = target404Errors;
-}
-
+// This object holds form data
 const manualChecks = ref({
   subdomain: "www",
   trailingSlash: "trailing-slash",
   protocol: "https",
   canonicals: "correct",
-  canonicalErrors: "",
-  xmlSitemap: true,
+  canonicalErrors: "n/a",
+  xmlSitemap: false,
   blog: false,
   blogUpdated: false,
   callsToAction: false,
   blockImportantPages: false,
+  blockUnimportantPages: false,
+  internallyLinkedUrlsInSitemaps: false,
+  unnecessaryPagesInSitemap: false,
 });
-
-function getSourceClass(source) {
-  switch (source) {
-    case "SEO Tool":
-      return "seo-tool";
-    case "Search Console":
-      return "search-console";
-    case "Tech audit attachments":
-      return "tech-audit";
-    case "Manually check":
-      return "manually-check";
-    default:
-      return "default-data-source-color";
-  }
-}
 
 function submitManualChecks() {
   isFormSubmitted.value = true;
 
-  // Update array values
+  auditData.preferredSubdomain.subdomain = manualChecks.value.subdomain;
+  auditData.trailingSlash.value = manualChecks.value.trailingSlash;
+  auditData.protocol.value = manualChecks.value.protocol;
+  auditData.canonicals.value = manualChecks.value.canonicals;
+
+  auditData.canonicalErrors.location = manualChecks.value.canonicalErrors || "";
   auditData.xmlSitemaps = manualChecks.value.xmlSitemap ? [{}] : [];
 
-  // Update nested boolean values directly
   auditData.internallyLinkedUrlsInSitemaps.value =
     manualChecks.value.internallyLinkedUrlsInSitemaps;
   auditData.callsToAction.value = manualChecks.value.callsToAction;
@@ -352,49 +302,11 @@ function submitManualChecks() {
   auditData.unnecessaryPagesBlockedByRobotsTxt.value =
     manualChecks.value.blockUnimportantPages;
 
-  // Update nested objects with simple values
-  auditData.preferredSubdomain.subdomain = manualChecks.value.subdomain;
-  auditData.trailingSlash.value = manualChecks.value.trailingSlash;
-  auditData.protocol.value = manualChecks.value.protocol;
-  auditData.canonicals.value = manualChecks.value.canonicals;
-
-  // Canonical errors update logic
-  if (manualChecks.value.canonicals === "errors") {
-    auditData.canonicalErrors.location =
-      manualChecks.value.canonicalErrors || "No details provided.";
-  } else {
-    auditData.canonicalErrors.location = "N/A";
-  }
-
-  // Update site blog status
-  auditData.siteBlog.url = manualChecks.value.blog.url || "";
-  auditData.siteBlog.isActive = manualChecks.value.blog.isActive || false;
-
-  // Update blog update frequency
-  auditData.blogUpdateFrequency.updatedMonthly =
-    manualChecks.value.blogUpdated || false;
-
-  // Update unnecessary pages in sitemap
-  auditData.unnecessaryPagesInSitemap = manualChecks.value
-    .unnecessaryPagesInSitemap
-    ? []
-    : [];
+  auditData.siteBlog.isActive = manualChecks.value.blog;
+  auditData.blogUpdateFrequency.updatedMonthly = manualChecks.value.blogUpdated;
 }
 
 function resetForm() {
-  auditData.preferredSubdomain.subdomain = "www";
-  auditData.trailingSlash.value = "trailing-slash";
-  auditData.protocol.value = "https";
-  auditData.canonicals.value = "correct";
-  auditData.canonicalErrors.location = "";
-  auditData.siteBlog = { url: "", isActive: false };
-  auditData.blogUpdateFrequency.updatedMonthly = false;
-  auditData.xmlSitemaps = [];
-  auditData.importantPagesBlockedByRobotsTxt.value = false;
-  auditData.unnecessaryPagesBlockedByRobotsTxt.value = false;
-  auditData.internallyLinkedUrlsInSitemaps.value = true;
-  auditData.callsToAction.value = false;
-
   Object.assign(manualChecks.value, {
     subdomain: "www",
     trailingSlash: "trailing-slash",
@@ -408,9 +320,21 @@ function resetForm() {
     unnecessaryPagesInSitemap: false,
     blockImportantPages: false,
     blockUnimportantPages: false,
+    internallyLinkedUrlsInSitemaps: false,
   });
 
-  updateAuditTableFromData(auditData);
+  auditData.preferredSubdomain.subdomain = "www";
+  auditData.trailingSlash.value = "trailing-slash";
+  auditData.protocol.value = "https";
+  auditData.canonicals.value = "correct";
+  auditData.canonicalErrors.location = "";
+  auditData.xmlSitemaps = [];
+  auditData.siteBlog.isActive = false;
+  auditData.blogUpdateFrequency.updatedMonthly = false;
+  auditData.callsToAction.value = false;
+  auditData.importantPagesBlockedByRobotsTxt.value = false;
+  auditData.unnecessaryPagesBlockedByRobotsTxt.value = false;
+  auditData.internallyLinkedUrlsInSitemaps.value = false;
 
   isFormSubmitted.value = false;
 }
@@ -470,6 +394,21 @@ onMounted(() => {
     });
   }
 });
+
+function getSourceClass(source: string) {
+  switch (source) {
+    case "SEO Tool":
+      return "seo-tool";
+    case "Search Console":
+      return "search-console";
+    case "Tech audit attachments":
+      return "tech-audit";
+    case "Manually check":
+      return "manually-check";
+    default:
+      return "default-data-source-color";
+  }
+}
 </script>
 
 <style scoped>

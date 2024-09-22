@@ -45,12 +45,12 @@ export const auditData = reactive<auditTypes.AuditData>({
   pagesWithContentOpportunities: [], // Number of pages with content opportunities
   xmlSitemaps: [], // Initialize as an empty array
   internallyLinkedUrlsInSitemaps: {value: true}, // Do internally linked URLs match URLs inside the sitemap(s)?
-  siteBlog: { url: '', isActive: false }, // Default initialization
+  siteBlog: { url: 'n/a', isActive: false }, // Default initialization
   blogUpdateFrequency: { updatedMonthly: false }, // Default initialization
-  preferredSubdomain: { subdomain: '' }, // www or non-www
-  trailingSlash: {value: ""}, // trailing-slash, no-trailing-slash, or ""
-  protocol: {value: ""}, // https or http
-  canonicals: {value: ""}, // correct, no-canonicals, errors, not-needed
-  canonicalErrors: {location: ""}, // Details for canonical errors
+  preferredSubdomain: { subdomain: 'www' }, // www or non-www
+  trailingSlash: {value: "trailing-slash"}, // trailing-slash, no-trailing-slash, or ""
+  protocol: {value: "www"}, // https or http
+  canonicals: {value: "correct"}, // correct, no-canonicals, errors, not-needed
+  canonicalErrors: {location: "n/a"}, // Details for canonical errors
   callsToAction: {value: true}, // Does the site have calls to action?
 });
