@@ -34,7 +34,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(item, index) in auditTableObject" :key="index">
+                <tr v-for="(item, index) in auditTable" :key="index">
                   <td>
                     <span
                       :class="['source-indicator', getSourceClass(item.source)]"
@@ -165,18 +165,6 @@
               />
             </div>
 
-            <!-- Site Structure -->
-            <div class="form-group mb-3">
-              <label
-                >Unnecessary pages in sitemap (e.g., /cart, /my-account,
-                /checkout)?</label
-              >
-              <input
-                type="checkbox"
-                v-model="manualChecks.unnecessaryPagesInSitemap"
-              />
-            </div>
-
             <!-- Blog -->
             <div class="form-group mb-3">
               <label>Does the site have a blog?</label>
@@ -191,6 +179,17 @@
             <div class="form-group mb-3">
               <label>Does the site have calls to action?</label>
               <input type="checkbox" v-model="manualChecks.callsToAction" />
+            </div>
+
+            <!-- Internal Links Match Sitemap Links -->
+            <div class="form-group mb-3">
+              <label
+                >Do the internal links match those found in the sitemap?</label
+              >
+              <input
+                type="checkbox"
+                v-model="manualChecks.internallyLinkedUrlsInSitemaps"
+              />
             </div>
 
             <!-- Submit Button -->
@@ -256,6 +255,9 @@ import { getIndexCoverage } from "../services/searchConsoleService";
 import JSZip from "jszip";
 import { useRouter } from "vue-router";
 import * as auditTypes from "../interfaces";
+import { auditData } from "../data/auditData";
+import { auditMapping } from "../data/auditMapping";
+import { auditTable } from "../data/auditTable";
 
 const router = useRouter();
 const appStore = useAppStore();
@@ -265,375 +267,31 @@ const gscLoading = ref(false);
 const gscData = ref(null);
 const zipReader = new JSZip();
 const isFormSubmitted = ref(false);
-const auditData = ref<auditTypes.AuditData>({
-  // Arrays for data collections
-  targetUrl404Errors: [], // Target URL 404 errors
-  brokenInternalLinks: [], // Broken internal links
-  brokenExternalLinks: [], // Broken external links
-  searchConsole404Errors: [], // Search Console 404 errors
-  searchConsole404ErrorsToAddress: [], // Search Console 404 errors to address
-  searchConsoleSoft404Errors: [], // Search Console soft 404 errors
-  brokenBacklinks: [], // Broken backlinks (unique)
-  pagesWithPoorLCPPerformance: [], // Pages with 'Poor' LCP performance
-  pagesWithPoorCLSPerformance: [], // Pages with 'Poor' CLS performance
-  pagesWithPoorINPPerformance: [], // Pages with 'Poor' INP performance
-  structuredData: [], // Does the site have structured data?
-  structuredDataErrors: [], // Does the site have structured data errors?
-  manualActions: [], // Does the site have manual actions?
-  securityWarnings: [], // Does the site have security warnings inside Google Search Console?
-  importantPagesBlockedByRobotsTxt: [], // Are pages blocked by robots meta tag or x robots tag?
-  unnecessaryPagesBlockedByRobotsTxt: [], // Does the robots.txt block unnecessary pages?
-  internalRedirectLinks: [], // Internal redirects links
-  externalRedirectLinks: [], // External redirect links
-  redirectChains: [], // Redirect chains
-  orphanedPages: [], // Orphaned pages
-  missingAltText: [],
-  brokenPagesInSitemaps: [], // Broken pages in sitemaps
-  redirectedPagesInSitemaps: [], // Redirected pages in sitemaps
-  urlsInMultipleSitemaps: [], // URLs in multiple sitemaps
-  canonicalizedUrlsInSitemaps: [], // Canonicalized URLs in sitemaps
-  noindexPagesInSitemaps: [], // Noindex pages in sitemaps
-  pagesWithMixedResources: [], // Pages that load mixed resources
-  offsiteDuplicateContent: [],
-  onsiteDuplicateContent: [],
-  pagesWithMissingMetaTitles: [], // Pages with missing meta titles
-  pagesWithDuplicateMetaTitles: [], // Pages with duplicate meta titles
-  pagesWithLongMetaTitles: [], // Pages with meta titles > 60 characters
-  pagesWithShortMetaTitles: [], // Pages with meta titles < 40 characters
-  pagesWithMissingMetaDescriptions: [], // Pages with missing meta descriptions
-  pagesWithDuplicateMetaDescriptions: [], // Pages with duplicate meta descriptions
-  pagesWithLongMetaDescriptions: [], // Pages with meta descriptions > 160 characters
-  pagesWithShortMetaDescriptions: [], // Pages with meta descriptions < 140 characters
-  pagesWithMissingH1s: [], // Pages with missing H1s
-  pagesWithDuplicateH1s: [], // Pages with duplicate H1s
-  pagesWithMultipleH1s: [], // Multiple H1s
-  pagesWithContentOpportunities: [], // Number of pages with content opportunities
-  xmlSitemap: "", // Does the site have an XML sitemap?
-  unnecessaryPagesInSitemap: [], // The sitemap contains unnecessary pages
-  internallyLinkedUrlsInSitemaps: [], // Do internally linked URLs match URLs inside the sitemap(s)?
-
-  // String properties for manual checks
-  subdomain: "", // www or non-www
-  trailingSlash: "", // trailing-slash, no-trailing-slash, or ""
-  protocol: "", // https or http
-  canonicals: "", // correct, no-canonicals, errors, not-needed
-  canonicalErrors: "", // Details for canonical errors
-  callsToAction: "", // Does the site have calls to action?
-  blockImportantPages: "", // Block important pages
-  blockUnimportantPages: "", // Block unimportant pages
-  blog: "", // Does the site have a blog?
-  blogUpdated: "", // Is the blog updated roughly once a month?
-});
 
 console.log("Audit data structure:", JSON.stringify(auditData.value, null, 2));
 
-const auditTableObject = ref([
-  { title: "Target URL 404 errors", value: "", source: "SEO Tool" },
-  { title: "Search Console 404 errors", value: "", source: "Search Console" },
-  {
-    title: "Search Console 404 errors to address",
-    value: "",
-    source: "Search Console",
-  },
-  {
-    title: "Search Console soft 404 errors",
-    value: "",
-    source: "Search Console",
-  },
-  {
-    title: "Pages with 'Poor' LCP performance",
-    value: "",
-    source: "Search Console",
-  },
-  {
-    title: "Pages with 'Poor' CLS performance",
-    value: "",
-    source: "Search Console",
-  },
-  {
-    title: "Pages with 'Poor' INP performance",
-    value: "",
-    source: "Search Console",
-  },
-  {
-    title: "Does the site have structured data?",
-    value: "",
-    source: "Search Console",
-  },
-  {
-    title: "Does the site have structured data errors?",
-    value: "",
-    source: "Search Console",
-  },
-  {
-    title: "Does the site have manual actions?",
-    value: "",
-    source: "Search Console",
-  },
-  {
-    title: "Does the site have security warnings inside Google Search Console?",
-    value: "",
-    source: "Search Console",
-  },
-  {
-    title: "Are pages blocked by robots meta tag or x robots tag?",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Missing image alt-text (unique)",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Broken internal links",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Broken external links",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Broken backlinks (unique)",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Internal redirects links",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "External redirect links",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  { title: "Redirect chains", value: "", source: "Tech audit attachments" },
-  { title: "Orphaned pages", value: "", source: "Tech audit attachments" },
-  {
-    title: "Broken pages in sitemaps",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Redirected pages in sitemaps",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "URLs in multiple sitemaps",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Canonicalized URLs in sitemaps",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Noindex pages in sitemaps",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages that load mixed resources",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with missing meta titles",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with duplicate meta titles",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with meta titles > 60 characters",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with meta titles < 40 characters",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with missing meta descriptions",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with duplicate meta descriptions",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with meta descriptions > 160 characters",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with meta descriptions < 140 characters",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with missing H1s",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  {
-    title: "Pages with duplicate H1s",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  { title: "Multiple H1s", value: "", source: "Tech audit attachments" },
-  {
-    title: "Number of pages with content opportunities",
-    value: "",
-    source: "Tech audit attachments",
-  },
-  { title: "Offsite duplicate content %", value: "", source: "Copyscape" },
-  { title: "Onsite duplicate content %", value: "", source: "Siteliner" },
-  {
-    title: "Does the site have calls to action?",
-    value: "",
-    source: "Manually check",
-  },
-  {
-    title: "The sitemap contains unnecessary pages",
-    value: "",
-    source: "Manually check",
-  },
-  {
-    title: "Does the site have canonicals?",
-    value: "",
-    source: "Manually check",
-  },
-  { title: "Specify Canonical Errors", value: "", source: "Manually check" },
-  {
-    title: "URL Trailing Slash",
-    value: "",
-    source: "Manually check",
-  },
-  { title: "Subdomain Preference", value: "", source: "Manually check" },
-  { title: "Protocol", value: "", source: "Manually check" },
-  {
-    title: "Do internally linked URLs match URLs inside the sitemap(s)?",
-    value: "",
-    source: "Manually check",
-  },
-  {
-    title: "Does the robots.txt block important pages?",
-    value: "",
-    source: "Manually check",
-  },
-  {
-    title: "Does the robots.txt block unnecessary pages?",
-    value: "",
-    source: "Manually check",
-  },
-  {
-    title: "Does the site have an XML sitemap?",
-    value: "",
-    source: "Manually check",
-  },
-  { title: "Does the site have a blog?", value: "", source: "Manually check" },
-  {
-    title: "Is the blog updated roughly once a month?",
-    value: "",
-    source: "Manually check",
-  },
-]);
-
-const auditMapping = {
-  targetUrl404Errors: "Target URL 404 errors",
-  brokenInternalLinks: "Broken internal links",
-  brokenExternalLinks: "Broken external links",
-  searchConsole404Errors: "Search Console 404 errors",
-  searchConsole404ErrorsToAddress: "Search Console 404 errors to address",
-  searchConsoleSoft404Errors: "Search Console soft 404 errors",
-  brokenBacklinks: "Broken backlinks (unique)",
-  pagesWithPoorLCPPerformance: "Pages with 'Poor' LCP performance",
-  pagesWithPoorCLSPerformance: "Pages with 'Poor' CLS performance",
-  pagesWithPoorINPPerformance: "Pages with 'Poor' INP performance",
-  structuredData: "Does the site have structured data?",
-  structuredDataErrors: "Does the site have structured data errors?",
-  manualActions: "Does the site have manual actions?",
-  securityWarnings:
-    "Does the site have security warnings inside Google Search Console?",
-  missingAltText: "Missing image alt-text (unique)",
-  importantPagesBlockedByRobotsTxt:
-    "Are pages blocked by robots meta tag or x robots tag?",
-  unnecessaryPagesBlockedByRobotsTxt:
-    "Does the robots.txt block unnecessary pages?",
-  internalRedirectLinks: "Internal redirects links",
-  externalRedirectLinks: "External redirect links",
-  redirectChains: "Redirect chains",
-  orphanedPages: "Orphaned pages",
-  brokenPagesInSitemaps: "Broken pages in sitemaps",
-  redirectedPagesInSitemaps: "Redirected pages in sitemaps",
-  urlsInMultipleSitemaps: "URLs in multiple sitemaps",
-  canonicalizedUrlsInSitemaps: "Canonicalized URLs in sitemaps",
-  noindexPagesInSitemaps: "Noindex pages in sitemaps",
-  pagesWithMixedResources: "Pages that load mixed resources",
-  offsiteDuplicateContent: "Offsite duplicate content %",
-  onsiteDuplicateContent: "Onsite duplicate content %",
-  pagesWithMissingMetaTitles: "Pages with missing meta titles",
-  pagesWithDuplicateMetaTitles: "Pages with duplicate meta titles",
-  pagesWithLongMetaTitles: "Pages with meta titles > 60 characters",
-  pagesWithShortMetaTitles: "Pages with meta titles < 40 characters",
-  pagesWithMissingMetaDescriptions: "Pages with missing meta descriptions",
-  pagesWithDuplicateMetaDescriptions: "Pages with duplicate meta descriptions",
-  pagesWithLongMetaDescriptions:
-    "Pages with meta descriptions > 160 characters",
-  pagesWithShortMetaDescriptions:
-    "Pages with meta descriptions < 140 characters",
-  pagesWithMissingH1s: "Pages with missing H1s",
-  pagesWithDuplicateH1s: "Pages with duplicate H1s",
-  pagesWithMultipleH1s: "Multiple H1s",
-  pagesWithContentOpportunities: "Number of pages with content opportunities",
-  xmlSitemap: "Does the site have an XML sitemap?",
-  unnecessaryPagesInSitemap: "The sitemap contains unnecessary pages",
-  internallyLinkedUrlsInSitemaps:
-    "Do internally linked URLs match URLs inside the sitemap(s)?",
-  blog: "Does the site have a blog?",
-  blogUpdated: "Is the blog updated roughly once a month?",
-  callsToAction: "Does the site have calls to action?",
-  subdomain: "Subdomain Preference",
-  trailingSlash: "URL Trailing Slash",
-  protocol: "Protocol",
-  canonicals: "Does the site have canonicals?",
-  canonicalErrors: "Specify Canonical Errors",
-  blockImportantPages: "Does the robots.txt block important pages?",
-  blockUnimportantPages: "Does the robots.txt block unnecessary pages?",
-};
-
 function updateAuditTableFromData(newAuditData) {
-  console.log(
-    "updateAuditTableFromData called with:",
-    JSON.stringify(newAuditData, null, 2)
-  );
+  const updatedAuditTable = [...auditTable]; // Create a new reference for the reactive array
   for (const [key, title] of Object.entries(auditMapping)) {
-    const auditItem = auditTableObject.value.find(
+    const auditItemIndex = updatedAuditTable.findIndex(
       (item) => item.title === title
     );
-    if (auditItem) {
-      console.log(`Updated ${title}: ${auditItem.value}`);
-      auditItem.value = newAuditData[key] || ""; // Update value or set to empty string if not found
+    if (auditItemIndex !== -1) {
+      // Update the item in the copied array
+      updatedAuditTable[auditItemIndex] = {
+        ...updatedAuditTable[auditItemIndex],
+        value: newAuditData[key] || "",
+      };
+      console.log(
+        `Updated ${title}: ${updatedAuditTable[auditItemIndex].value}`
+      );
     } else {
-      console.warn(`Missing title in auditTableObject: ${title}`);
+      console.warn(`Missing title in auditTable: ${title}`);
     }
   }
-  console.log(
-    "Updated auditTableObject: ",
-    JSON.stringify(auditTableObject.value, null, 2)
-  );
+  // Replace the reactive array with the updated one
+  auditTable.splice(0, auditTable.length, ...updatedAuditTable);
+  console.log("Updated auditTable: ", JSON.stringify(auditTable, null, 2));
 }
 
 // Watch for changes in auditData and update the table accordingly
@@ -657,13 +315,11 @@ const manualChecks = ref({
   protocol: "https",
   canonicals: "correct",
   canonicalErrors: "",
-  xmlSitemap: false,
+  xmlSitemap: true,
   blog: false,
   blogUpdated: false,
   callsToAction: false,
-  unnecessaryPagesInSitemap: false,
   blockImportantPages: false,
-  blockedPages: "",
 });
 
 function getSourceClass(source) {
@@ -682,41 +338,63 @@ function getSourceClass(source) {
 }
 
 function submitManualChecks() {
-  auditData.value.xmlSitemap = manualChecks.value.xmlSitemap ? "Yes" : "No";
-  auditData.value.blog = manualChecks.value.blog ? "Yes" : "No";
-  auditData.value.blogUpdated = manualChecks.value.blogUpdated ? "Yes" : "No";
-  auditData.value.callsToAction = manualChecks.value.callsToAction
-    ? "Yes"
-    : "No";
-  auditData.value.unnecessaryPagesInSitemap = manualChecks.value
-    .unnecessaryPagesInSitemap
-    ? "Yes"
-    : "No";
-  auditData.value.blockImportantPages = manualChecks.value.blockImportantPages
-    ? "Yes"
-    : "No";
-  auditData.value.blockUnimportantPages = manualChecks.value
-    .blockUnimportantPages
-    ? "Yes"
-    : "No";
-  auditData.value.subdomain = manualChecks.value.subdomain;
-  auditData.value.trailingSlash = manualChecks.value.trailingSlash;
-  auditData.value.protocol = manualChecks.value.protocol;
-  auditData.value.canonicals = manualChecks.value.canonicals;
+  isFormSubmitted.value = true;
 
+  // Update array values
+  auditData.xmlSitemaps = manualChecks.value.xmlSitemap ? [{}] : [];
+
+  // Update nested boolean values directly
+  auditData.internallyLinkedUrlsInSitemaps.value =
+    manualChecks.value.internallyLinkedUrlsInSitemaps;
+  auditData.callsToAction.value = manualChecks.value.callsToAction;
+  auditData.importantPagesBlockedByRobotsTxt.value =
+    manualChecks.value.blockImportantPages;
+  auditData.unnecessaryPagesBlockedByRobotsTxt.value =
+    manualChecks.value.blockUnimportantPages;
+
+  // Update nested objects with simple values
+  auditData.preferredSubdomain.subdomain = manualChecks.value.subdomain;
+  auditData.trailingSlash.value = manualChecks.value.trailingSlash;
+  auditData.protocol.value = manualChecks.value.protocol;
+  auditData.canonicals.value = manualChecks.value.canonicals;
+
+  // Canonical errors update logic
   if (manualChecks.value.canonicals === "errors") {
-    auditData.value.canonicalErrors =
+    auditData.canonicalErrors.location =
       manualChecks.value.canonicalErrors || "No details provided.";
   } else {
-    auditData.value.canonicalErrors = "N/A";
+    auditData.canonicalErrors.location = "N/A";
   }
 
-  console.log("manualChecks: ", JSON.stringify(manualChecks.value, null, 2));
-  console.log("auditData: ", JSON.stringify(auditData.value, null, 2));
-  isFormSubmitted.value = true;
+  // Update site blog status
+  auditData.siteBlog.url = manualChecks.value.blog.url || "";
+  auditData.siteBlog.isActive = manualChecks.value.blog.isActive || false;
+
+  // Update blog update frequency
+  auditData.blogUpdateFrequency.updatedMonthly =
+    manualChecks.value.blogUpdated || false;
+
+  // Update unnecessary pages in sitemap
+  auditData.unnecessaryPagesInSitemap = manualChecks.value
+    .unnecessaryPagesInSitemap
+    ? []
+    : [];
 }
 
 function resetForm() {
+  auditData.preferredSubdomain.subdomain = "www";
+  auditData.trailingSlash.value = "trailing-slash";
+  auditData.protocol.value = "https";
+  auditData.canonicals.value = "correct";
+  auditData.canonicalErrors.location = "";
+  auditData.siteBlog = { url: "", isActive: false };
+  auditData.blogUpdateFrequency.updatedMonthly = false;
+  auditData.xmlSitemaps = [];
+  auditData.importantPagesBlockedByRobotsTxt.value = false;
+  auditData.unnecessaryPagesBlockedByRobotsTxt.value = false;
+  auditData.internallyLinkedUrlsInSitemaps.value = true;
+  auditData.callsToAction.value = false;
+
   Object.assign(manualChecks.value, {
     subdomain: "www",
     trailingSlash: "trailing-slash",
@@ -729,13 +407,10 @@ function resetForm() {
     callsToAction: false,
     unnecessaryPagesInSitemap: false,
     blockImportantPages: false,
-    blockedPages: "",
+    blockUnimportantPages: false,
   });
 
-  // Resetting auditData values to empty strings
-  for (const key in auditData.value) {
-    auditData.value[key] = ""; // Clear out all values in auditData
-  }
+  updateAuditTableFromData(auditData);
 
   isFormSubmitted.value = false;
 }
@@ -819,7 +494,6 @@ textarea {
   vertical-align: middle;
 }
 
-/* General key-item styles */
 .key-item {
   display: inline-block;
   padding: 5px 10px;
@@ -831,33 +505,26 @@ textarea {
   cursor: default;
 }
 
-/* Specific styles for each source */
-
-/* SEO Tool - Soft Teal */
 .seo-tool {
-  background-color: #00bcd4; /* Soft Teal */
+  background-color: #00bcd4;
 }
 
-/* Search Console - Purple */
 .search-console {
-  background-color: #9c27b0; /* Purple */
+  background-color: #9c27b0;
 }
 
-/* Tech Audit - Orange */
 .tech-audit {
-  background-color: #ff9800; /* Orange */
+  background-color: #ff9800;
 }
 
-/* Manually Check - Pink */
 .manually-check {
-  background-color: #ff3c7d; /* Pink */
+  background-color: #ff3c7d;
 }
 
 .default-data-source-color {
   background-color: black;
 }
 
-/* Styling for the color-key container */
 .color-key {
   display: flex;
   align-items: center;
@@ -868,7 +535,6 @@ textarea {
   flex-shrink: 0;
 }
 
-/* Source Indicator Styles */
 .source-indicator {
   display: inline-block;
   width: 8px;
@@ -877,7 +543,6 @@ textarea {
   border-radius: 50%;
 }
 
-/* Color the dots based on source class */
 .source-indicator.seo-tool {
   background-color: #00bcd4;
 }
