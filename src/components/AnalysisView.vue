@@ -1,34 +1,76 @@
 <template>
   <div class="container-fluid mt-4">
     <div class="row">
+      <!-- Audit Data Table -->
+      <div class="col-12 mb-4">
+        <div class="card p-4">
+          <h5 class="card-title">
+            Executive Audit Summary
+            <button
+              class="btn btn-link p-0"
+              data-bs-toggle="collapse"
+              data-bs-target="#dataTable"
+            >
+              Toggle
+            </button>
+          </h5>
+          <div id="dataTable" class="collapse">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Analysis Result</th>
+                  <th>Where To Locate</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in auditObject" :key="index">
+                  <td>{{ item.title }}</td>
+                  <td>{{ item.value }}</td>
+                  <td>{{ item.source }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
       <!-- Manual Checks Form -->
       <div class="col-12 mb-4">
         <div v-if="isFormSubmitted" class="alert alert-success mb-3">
           Manual checks form submitted successfully!
         </div>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="card-title mb-0">Manual Checks</h5>
-          <div>
-            <button
-              @click="goToPresentation"
-              class="btn btn-success me-2"
-              :disabled="!isFormSubmitted"
-            >
-              Generate Presentation
-            </button>
-            <button
-              v-if="isFormSubmitted"
-              type="button"
-              class="btn btn-warning"
-              @click="resetForm"
-            >
-              Reset Form
-            </button>
-          </div>
-        </div>
 
         <div class="card p-4">
-          <form @submit.prevent="submitManualChecks">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">
+              Manual Checks
+              <button
+                class="btn btn-link p-0"
+                data-bs-toggle="collapse"
+                data-bs-target="#manual-checks-form"
+              >
+                Toggle
+              </button>
+            </h5>
+            <div>
+              <button
+                @click="goToPresentation"
+                class="btn btn-success me-2"
+                :disabled="!isFormSubmitted"
+              >
+                Generate Presentation
+              </button>
+              <button
+                v-if="isFormSubmitted"
+                type="button"
+                class="btn btn-warning"
+                @click="resetForm"
+              >
+                Reset Form
+              </button>
+            </div>
+          </div>
+          <form class="show" id="manual-checks-form" @submit.prevent="submitManualChecks">
             <div class="row">
               <!-- www vs non-www -->
               <div class="form-group col-md-6 mb-3">
@@ -92,13 +134,17 @@
                 type="checkbox"
                 v-model="manualChecks.blockImportantPages"
               />
-              <div v-if="manualChecks.blockImportantPages">
-                <label>Specify the blocked pages:</label>
-                <textarea
-                  v-model="manualChecks.blockedPages"
-                  class="form-control"
-                ></textarea>
-              </div>
+            </div>
+
+            <div class="form-group mb-3">
+              <label
+                >Does the robots.txt block unnecessary pages (e.g., /cart,
+                /my-account, /checkout)?</label
+              >
+              <input
+                type="checkbox"
+                v-model="manualChecks.blockUnimportantPages"
+              />
             </div>
 
             <!-- Site Structure -->
@@ -138,13 +184,22 @@
       <!-- Left Column: Sitebulb Data -->
       <div class="col-md-4">
         <div class="card p-4 mb-4">
-          <h5 class="card-title">Sitebulb Data</h5>
+          <h5 class="card-title">
+            Sitebulb Data
+            <button
+              class="btn btn-link p-0"
+              data-bs-toggle="collapse"
+              data-bs-target="#sitebulb-data"
+            >
+              Toggle
+            </button>
+          </h5>
           <div v-if="loading">Extracting files from the uploaded ZIP...</div>
           <div v-else>
             <p class="alert alert-info">
               {{ extractedFiles.length }} files extracted from the ZIP.
             </p>
-            <ul class="list-group">
+            <ul id="sitebulb-data" class="list-group collapse">
               <li
                 v-for="file in extractedFiles"
                 :key="file.name"
@@ -192,6 +247,267 @@ const gscData = ref(null);
 const zipReader = new JSZip();
 const isFormSubmitted = ref(false);
 
+const auditObject = ref([
+  { title: "Target URL 404 errors", value: "", source: "SEO Tool" },
+  {
+    title: "Is the sitemap submitted to Search Console?",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Is the site blocked from indexing?",
+    value: "",
+    source: "Search Console",
+  },
+  { title: "Search Console 404 errors", value: "", source: "Search Console" },
+  {
+    title: "Search Console 404 errors to address",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Search Console soft 404 errors",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Pages with 'Poor' LCP performance",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Pages with 'Poor' CLS performance",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Pages with 'Poor' INP performance",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Does the site have structured data?",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Does the site have structured data errors?",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Does the site have manual actions?",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Does the site have security warnings inside Google Search Console?",
+    value: "",
+    source: "Search Console",
+  },
+  {
+    title: "Are pages blocked by robots meta tag or x robots tag?",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Missing image alt-text (unique)",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Broken internal links",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Broken external links",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Broken backlinks (unique)",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Internal redirects links",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "External redirect links",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  { title: "Redirect chains", value: "", source: "Tech audit attachments" },
+  { title: "Orphaned pages", value: "", source: "Tech audit attachments" },
+  {
+    title: "Broken pages in sitemaps",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Redirected pages in sitemaps",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "URLs in multiple sitemaps",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Canonicalized URLs in sitemaps",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Noindex pages in sitemaps",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages that load mixed resources",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with missing meta titles",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with duplicate meta titles",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with meta titles > 60 characters",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with meta titles < 40 characters",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with missing meta descriptions",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with duplicate meta descriptions",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with meta descriptions > 160 characters",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with meta descriptions < 140 characters",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with missing H1s",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  {
+    title: "Pages with duplicate H1s",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  { title: "Multiple H1s", value: "", source: "Tech audit attachments" },
+  {
+    title: "Number of pages with content opportunities",
+    value: "",
+    source: "Tech audit attachments",
+  },
+  { title: "Offsite duplicate content %", value: "", source: "Copyscape" },
+  { title: "Onsite duplicate content %", value: "", source: "Siteliner" },
+  {
+    title: "Does the site have calls to action?",
+    value: "",
+    source: "Manually check",
+  },
+  {
+    title:
+      "The sitemap contains unnecessary pages (e.g., /cart, /my-account, /checkout)",
+    value: "",
+    source: "Manually check",
+  },
+  {
+    title: "Does the site have canonicals?",
+    value: "",
+    source: "Manually check",
+  },
+  { title: "Are the canonicals correct?", value: "", source: "Manually check" },
+  {
+    title: "Does the site load with a trailing backslash?",
+    value: "",
+    source: "Manually check",
+  },
+  {
+    title: "Does the site load without trailing backslash?",
+    value: "",
+    source: "Manually check",
+  },
+  { title: "Does the site load www?", value: "", source: "Manually check" },
+  {
+    title: "Does the site load without www (naked)?",
+    value: "",
+    source: "Manually check",
+  },
+  { title: "Does the site load HTTP?", value: "", source: "Manually check" },
+  { title: "Does the site load HTTPS?", value: "", source: "Manually check" },
+  {
+    title: "Do internally linked URLs match URLs inside the sitemap(s)?",
+    value: "",
+    source: "Manually check",
+  },
+  {
+    title: "Does the robots.txt block important pages?",
+    value: "",
+    source: "Manually check",
+  },
+  {
+    title: "Does the robots.txt block unnecessary pages?",
+    value: "",
+    source: "Manually check",
+  },
+  {
+    title: "Does the site have an XML sitemap?",
+    value: "",
+    source: "Manually check",
+  },
+  { title: "Does the site have a blog?", value: "", source: "Manually check" },
+  {
+    title: "Is the blog updated roughly once a month?",
+    value: "",
+    source: "Manually check",
+  },
+]);
+
+function updateAuditObject(key, value) {
+  const item = auditObject.value.find((obj) => obj.title === key);
+  if (item) {
+    item.value = value;
+  } else {
+    console.log(`${item} not found, unable to update audit object.`);
+  }
+}
+
+async function processSitebulbData(files) {
+  // Extract the required information from the files
+  const target404Errors = extract404Errors(files);
+  updateAuditObject("Target URL 404 errors", target404Errors);
+}
+
 const manualChecks = ref({
   subdomain: "www",
   trailingSlash: "trailing-slash",
@@ -208,6 +524,80 @@ const manualChecks = ref({
 });
 
 function submitManualChecks() {
+  updateAuditObject(
+    "Does the site have an XML sitemap?",
+    manualChecks.value.xmlSitemap ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Does the site have a blog?",
+    manualChecks.value.blog ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Is the blog updated roughly once a month?",
+    manualChecks.value.blogUpdated ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Does the site have calls to action?",
+    manualChecks.value.callsToAction ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "The sitemap contains unnecessary pages (e.g., /cart, /my-account, /checkout)",
+    manualChecks.value.unnecessaryPagesInSitemap ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Does the robots.txt block important pages?",
+    manualChecks.value.blockImportantPages ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Does the robots.txt block unnecessary pages?",
+    manualChecks.value.blockUnimportantPages ? "Yes" : "No"
+  );
+
+  // Update Canonicalization and Protocol choices
+  updateAuditObject(
+    "Does the site load www?",
+    manualChecks.value.subdomain === "www" ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Does the site load without www (naked)?",
+    manualChecks.value.subdomain === "non-www" ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Does the site load with a trailing backslash?",
+    manualChecks.value.trailingSlash === "trailing-slash" ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Does the site load without trailing backslash?",
+    manualChecks.value.trailingSlash === "no-trailing-slash" ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Does the site load HTTPS?",
+    manualChecks.value.protocol === "https" ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Does the site load HTTP?",
+    manualChecks.value.protocol === "http" ? "Yes" : "No"
+  );
+
+  // Update canonical tags
+  updateAuditObject(
+    "Does the site have canonicals?",
+    manualChecks.value.canonicals !== "no-canonicals" ? "Yes" : "No"
+  );
+  updateAuditObject(
+    "Are the canonicals correct?",
+    manualChecks.value.canonicals === "correct" ? "Yes" : "No"
+  );
+
+  if (manualChecks.value.canonicals === "errors") {
+    updateAuditObject(
+      "Specify Canonical Errors",
+      manualChecks.value.canonicalErrors || "No details provided."
+    );
+  } else {
+    updateAuditObject("Specify Canonical Errors", "N/A");
+  }
+
   isFormSubmitted.value = true;
   console.log("Manual Checks Submitted:", manualChecks.value);
 }
@@ -300,5 +690,12 @@ textarea {
 }
 .list-group-item {
   word-wrap: break-word;
+}
+.table {
+  margin-bottom: 20px;
+}
+.table th,
+.table td {
+  vertical-align: middle;
 }
 </style>

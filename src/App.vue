@@ -1,6 +1,6 @@
 <template>
   <header class="app-header">
-    <router-link to="/" class="home-link">🏠 Home</router-link>
+    <router-link to="/" class="home-link">🏠 House</router-link>
   </header>
 
   <router-view />
