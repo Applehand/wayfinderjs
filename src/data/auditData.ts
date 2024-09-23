@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import * as auditTypes from '../interfaces';
+import * as auditTypes from './interfaces';
 
 export const auditData = reactive<auditTypes.AuditData>({
   targetUrl404Errors: [], // Target URL 404 errors
