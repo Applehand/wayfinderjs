@@ -91,8 +91,9 @@ const selectedDomain = ref<string | null>(null);
 const userEmail = ref<string | null>(null);
 
 function startOAuth() {
-  window.location.href = "http://localhost:3000/auth";
+  window.location.href = "https://seowayfinder.applehand.dev:3000/auth";
 }
+
 
 
 function clearProject() {
