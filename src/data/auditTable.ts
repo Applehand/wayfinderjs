@@ -64,7 +64,7 @@ export const auditTable = computed(() => [
   },
   {
     title: "Broken internal links",
-    value: auditData.brokenInternalLinks,
+    value: auditData.brokenInternalLinks?.length,
     source: "Tech audit attachments",
   },
   {

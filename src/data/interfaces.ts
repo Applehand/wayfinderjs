@@ -32,7 +32,6 @@ export interface BrokenInternalLinks {
   parentPage: string; // The URL that contains the broken link
   brokenLink: string; // The broken internal URL
   statusCode: number; // The HTTP status code, e.g., 404
-  anchorText?: string; // Optional anchor text for the broken link
 }
 
 // Interface for Broken External Links
