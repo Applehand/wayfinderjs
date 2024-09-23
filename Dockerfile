@@ -10,11 +10,15 @@ COPY package.json package-lock.json ./
 # Install all dependencies (both development and production)
 RUN npm install
 
+# Copy the .env file into the container
+COPY .env .env
+
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port your app runs on
-EXPOSE 8081 3000
+# Expose the ports your app runs on
+EXPOSE 3000 # Backend port
+EXPOSE 8081 # Frontend port
 
 # Set environment variables (optional, modify as needed)
 ENV NODE_ENV=development
