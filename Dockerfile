@@ -17,8 +17,8 @@ COPY .env .env
 COPY . .
 
 # Expose the ports your app runs on
-EXPOSE 3000 # Backend port
-EXPOSE 8081 # Frontend port
+EXPOSE 3000
+EXPOSE 8081
 
 # Set environment variables (optional, modify as needed)
 ENV NODE_ENV=development
