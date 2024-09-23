@@ -12,7 +12,7 @@ const oauth2Client = new google.auth.OAuth2(
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors({ origin: "https://seowayfinder.applehand.dev" }));
+app.use(cors({ origin: "http://localhost:8081" }));
 
 app.get("/auth", (_req, res) => {
   const url = oauth2Client.generateAuthUrl({
@@ -41,7 +41,7 @@ app.get("/oauth2callback", async (req, res) => {
       : null;
 
     res.redirect(
-      `https://seowayfinder.applehand.dev/?access_token=${tokens.access_token}&email=${userInfo?.email}`
+      `http://localhost:8081/?access_token=${tokens.access_token}&email=${userInfo?.email}`
     );
   } catch (error) {
     console.error("Error exchanging code for tokens:", error);
