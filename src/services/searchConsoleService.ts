@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const EXPRESS_SERVER_URL = "http://localhost:3000";
+const EXPRESS_SERVER_URL = "https://wayfinderserver.applehand.dev";
 
 /**
  * Get list of verified properties (domains) for the authenticated user.
