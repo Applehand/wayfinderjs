@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expose the port your app runs on
-EXPOSE 8081
+EXPOSE 8081 3000
 
 # Set environment variables (optional, modify as needed)
 ENV NODE_ENV=development
