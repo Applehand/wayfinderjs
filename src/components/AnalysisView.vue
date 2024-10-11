@@ -10,11 +10,11 @@
         <ManualChecksForm />
       </div>
       <!-- Left Column: Sitebulb Data -->
-      <div class="col-md-4">
+      <div class="col-md-6 mb-4">
         <SitebulbData />
       </div>
       <!-- Right Column: GSC Data -->
-      <div v-if="appStore.accessToken" class="col-md-8">
+      <div v-if="appStore.accessToken" class="col-md-6 mb-4">
         <SearchConsoleData />
       </div>
     </div>

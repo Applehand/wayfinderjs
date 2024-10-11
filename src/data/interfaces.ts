@@ -1,3 +1,7 @@
+export interface Site {
+  siteUrl: string;
+}
+
 export interface TargetUrl404Errors {
   url: string; // The URL that returns a 404 error
   statusCode: number; // The HTTP status code, e.g., 404

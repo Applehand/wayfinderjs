@@ -11,19 +11,7 @@
       </button>
     </h5>
     <div v-if="loading">Extracting files from the uploaded ZIP...</div>
-    <div v-else>
-      <p class="alert alert-info">
-        {{ extractedFiles.length }} files extracted from the ZIP.
-      </p>
-      <ul id="sitebulb-data" class="list-group collapse">
-        <li
-          v-for="file in extractedFiles"
-          :key="file.name"
-          class="list-group-item"
-        >
-          <strong>{{ file.name }}</strong>
-        </li>
-      </ul>
+    <div id="sitebulb-data" class="collapse" v-else>
       <!-- Sitebulb Data View -->
       <div class="accordion mt-4" id="sitebulb-accordion">
         <div class="accordion-item">
@@ -80,7 +68,7 @@ import JSZip from "jszip";
 import Papa from "papaparse";
 
 import { auditData } from "../data/auditData";
-import { BrokenInternalLinks, AuditData } from "../data/interfaces";
+import { BrokenInternalLinks } from "../data/interfaces";
 
 const sitebulbData = ref({
   brokenInternalLinks: [] as BrokenInternalLinks[],
@@ -126,7 +114,7 @@ function parseCSV(csvContent: string, targetField: string) {
     console.log(`Parsing CSV for: ${targetField}`);
     console.log(`CSV Content Preview: ${csvContent.substring(0, 200)}`);
 
-    Papa.parse(csvContent, {
+    Papa.parse<string>(csvContent, {
       header: true,
       skipEmptyLines: true,
       complete: function (results) {
@@ -144,7 +132,7 @@ function parseCSV(csvContent: string, targetField: string) {
             );
 
           sitebulbData.value.brokenInternalLinks =
-            auditData.brokenInternalLinks;
+            auditData.brokenInternalLinks || [];
 
           console.log(
             `Extracted Broken Internal Links:`,
@@ -152,8 +140,8 @@ function parseCSV(csvContent: string, targetField: string) {
           );
         }
       },
-      error: function (error) {
-        console.error("Error parsing CSV with Papa Parse:", error);
+      error: function (error: Error) {
+        console.error("Error parsing CSV with Papa Parse:", error.message);
       },
     });
   } catch (error) {

@@ -82,11 +82,12 @@
 import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "../stores/appStore";
+import { Site } from "../data/interfaces";
 import { getVerifiedSites } from "../services/searchConsoleService";
 
 const appStore = useAppStore();
 const router = useRouter();
-const sites = ref([]);
+const sites = ref<Site[]>([]);
 const selectedDomain = ref<string | null>(null);
 const userEmail = ref<string | null>(null);
 
@@ -147,11 +148,12 @@ function goToAnalysisView() {
   });
 }
 
-watch(appStore.accessToken, () => {
+watch(() => appStore.accessToken, () => {
   if (appStore.accessToken) {
     fetchVerifiedSites();
   }
 });
+
 
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
